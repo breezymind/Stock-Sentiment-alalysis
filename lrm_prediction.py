@@ -1,16 +1,8 @@
-from pyspark.mllib.classification import NaiveBayes, NaiveBayesModel
-#from pyspark.ml.classification import NaiveBayes
-from pyspark.mllib.linalg import Vectors
-from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.feature import HashingTF
 from pyspark.mllib.feature import IDF
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession
-from pyspark.mllib.util import MLUtils
-import os,sys,shutil
 import getTweet
-
-
 
 def vectorize_feature(training):
     hashingTF = HashingTF()

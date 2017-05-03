@@ -1,10 +1,11 @@
+from pyspark.mllib.classification import SVMWithSGD, SVMModel
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession
 import os, shutil
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.feature import HashingTF
 from pyspark.mllib.feature import IDF
-from pyspark.mllib.classification import LogisticRegressionWithLBFGS
+
 
 conf = SparkConf().setAppName("appName").setMaster("local")
 sc = SparkContext(conf=conf)
@@ -16,8 +17,6 @@ def parseTweet(line):
     tweet = parts[5]
     words = tweet.strip().split(" ")
     return (label, words)
-
-
 
 def vectorize(training):
     hashingTF = HashingTF()
@@ -33,23 +32,25 @@ def vectorize(training):
     labeled_training_data = training_labeled.map(lambda k: LabeledPoint(k[0][0], k[1]))
     return labeled_training_data
 
+
 def train():
     print("Training..........")
     script_dir = os.path.dirname(__file__)
-    filename_training="train.csv"
+    filename_training="training_neutral_removed.csv"
     training_file = os.path.join(script_dir, filename_training)
     allData = sc.textFile(training_file).sample(False,0.1)
     training = allData.map(parseTweet)
     labeled_training_data=vectorize(training)
     print("Training logistic regression model....")
-    lrm_model = LogisticRegressionWithLBFGS.train(labeled_training_data)
-    return
+    # Build the model
+    svm_model = SVMWithSGD.train(labeled_training_data, iterations=300)
     print("Done training")
-    lrm_output_dir = '/home/emmittxu/Desktop/DataStreamProj/test/myLogisticRegressionModel'
-    shutil.rmtree(lrm_output_dir, ignore_errors=True)
-    lrm_model.save(sc, lrm_output_dir)
+    svm_output_dir = '/home/emmittxu/Desktop/Stock-Sentiment-alalysis/mySVMModel'
+    shutil.rmtree(svm_output_dir, ignore_errors=True)
+    svm_model.save(sc, svm_output_dir)
     print("Done saving model")
-    return lrm_model, lrm_output_dir
+    return svm_model, svm_output_dir
+
 
 def main():
     train()
